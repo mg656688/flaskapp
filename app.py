@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import hashlib  # for password hashing
 import jwt
+from sqlalchemy.exc import IntegrityError
 
 # Init app
 app = Flask(__name__)
@@ -82,31 +83,29 @@ def generate_token(user_id, key, algorithm):
 
 @app.route('/register', methods=['POST'])
 def create_user():
-    firstName = request.form.get('firstName')
-    lastName = request.form.get('lastName')
-    email = request.form.get('email')
+    try:
+        firstName = request.form.get('firstName')
+        lastName = request.form.get('lastName')
+        email = request.form.get('email')
+        password = hash_password(request.form.get('password'))
+        gender = request.form.get('gender')
+        birthdate = datetime.strptime(request.form.get('birthdate'), '%Y-%m-%d')
+        new_user = User(firstName, lastName, email, password, gender, birthdate)
 
-    # Check if the email already exists in the database
-    existing_user = User.query.filter_by(email=email).first()
-    if existing_user:
-        return jsonify({"User account already exists"}), 400
+        db.session.add(new_user)
+        db.session.commit()
 
-    password = hash_password(request.form.get('password'))
-    gender = request.form.get('gender')
-    birthdate = datetime.strptime(request.form.get('birthdate'), '%Y-%m-%d')
-    new_user = User(firstName, lastName, email, password, gender, birthdate)
-
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({
-        "id": new_user.id,
-        "firstName": new_user.firstName,
-        "lastName": new_user.lastName,
-        "email": new_user.email,
-        "gender": new_user.gender,
-        "birthdate": new_user.birthdate.strftime('%Y-%m-%d')
-    })
+        return jsonify({
+            "id": new_user.id,
+            "firstName": new_user.firstName,
+            "lastName": new_user.lastName,
+            "email": new_user.email,
+            "gender": new_user.gender,
+            "birthdate": new_user.birthdate.strftime('%Y-%m-%d')
+        })
+    except IntegrityError as e:
+        db.session.rollback()  # Rollback the transaction
+        return jsonify({"error": "Email address is already registered"}), 400
 
 
 @app.route("/login", methods=["POST"])
