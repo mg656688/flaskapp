@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Model Predictions</title>
+</head>
+<body>
+    <h1>Prediction Results</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <p></p>
+                <th>Predicted Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prediction in predictions %}
+                <tr>
+                    <td>{{ prediction.id }}</td>
+                    <td>{{ prediction.value }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
