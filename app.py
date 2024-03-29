@@ -85,6 +85,12 @@ def create_user():
     firstName = request.form.get('firstName')
     lastName = request.form.get('lastName')
     email = request.form.get('email')
+
+    # Check if the email already exists in the database
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({"User account already exists"}), 400
+
     password = hash_password(request.form.get('password'))
     gender = request.form.get('gender')
     birthdate = datetime.strptime(request.form.get('birthdate'), '%Y-%m-%d')
