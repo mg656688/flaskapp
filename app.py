@@ -12,6 +12,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'dp5.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['ENV'] = 'development'
+app.config['DEBUG'] = True
 secret_key = "SH15dsfv@Fs"
 algo = "HS256"
 
@@ -77,15 +79,15 @@ def generate_token(user_id, key, algorithm):
 
 
 # Create a user
+
 @app.route('/register', methods=['POST'])
 def create_user():
-    data = request.get_json()
-    firstName = data['firstName']
-    lastName = data['lastName']
-    email = data['email']
-    password = hash_password(data['password'])
-    gender = data['gender']
-    birthdate = datetime.strptime(data['birthdate'], '%Y-%m-%d')
+    firstName = request.form.get('firstName')
+    lastName = request.form.get('lastName')
+    email = request.form.get('email')
+    password = hash_password(request.form.get('password'))
+    gender = request.form.get('gender')
+    birthdate = datetime.strptime(request.form.get('birthdate'), '%Y-%m-%d')
     new_user = User(firstName, lastName, email, password, gender, birthdate)
 
     db.session.add(new_user)
@@ -104,9 +106,8 @@ def create_user():
 @app.route("/login", methods=["POST"])
 def login():
     """Login a user (POST request to /login)"""
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+    email = request.form['email']
+    password = request.form['password']
 
     user = User.query.filter_by(email=email).first()
     if not user:
@@ -168,13 +169,13 @@ def delete_user(id):
 # Create an Activity
 @app.route('/activity', methods=['POST'])
 def add_activity():
-    data = request.get_json()
-    name = data['name']
-    place = data['place']
-    latitude = data['latitude']
-    longitude = data['longitude']
-    duration = data['duration']
-    user_id = data['user_id']
+    data = request.form
+    name = data.get('name')
+    place = data.get('place')
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    duration = data.get('duration')
+    user_id = data.get('user_id')
     new_activity = Activity(name, place, latitude, longitude, duration, user_id)
 
     user = User.query.get(user_id)
@@ -249,13 +250,12 @@ def update_activity(id):
     if not activity:
         return jsonify({"error": "Activity not found"}), 404
 
-    data = request.get_json()
-    activity.name = data['name']
-    activity.place = data['place']
-    activity.latitude = data['latitude']
-    activity.longitude = data['longitude']
-    activity.duration = data['duration']
-    activity.date = datetime.strptime(data['date'], '%Y-%m-%d %H:%M:%S')
+    activity.name = request.form.get('name')
+    activity.place = request.form.get('place')
+    activity.latitude = request.form.get('latitude')
+    activity.longitude = request.form.get('longitude')
+    activity.duration = request.form.get('duration')
+    activity.date = datetime.strptime(request.form.get('date'), '%Y-%m-%d %H:%M:%S')
 
     db.session.commit()
 
@@ -351,4 +351,4 @@ def delete_specific_user_activity(user_id, activity_id):
 
 # Run Server
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
