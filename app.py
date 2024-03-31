@@ -170,7 +170,6 @@ def delete_user(id):
         }
     })
 
-
 # Create an Activity
 @app.route('/activity', methods=['POST'])
 def add_activity():
@@ -181,6 +180,13 @@ def add_activity():
     longitude = data.get('longitude')
     duration = data.get('duration')
     user_id = data.get('user_id')
+
+    # Check if the activity name is already taken for the user
+    existing_activity = Activity.query.filter_by(name=name, user_id=user_id).first()
+    if existing_activity:
+        return jsonify({"error": "Activity '{}' already exists for this user".format(name)}), 400
+
+    # Create a new activity
     new_activity = Activity(name, place, latitude, longitude, duration, user_id)
 
     user = User.query.get(user_id)
