@@ -25,7 +25,7 @@ db = SQLAlchemy(app)
 # Activity Class/Model
 class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True)
+    name = db.Column(db.String(100))
     place = db.Column(db.String(200))
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
